@@ -1,6 +1,8 @@
-Using Axios instead of vue-resource
-Authentication in Vue Apps
-Form Input Validation
+## Using Axios instead of vue-resource
+
+## Authentication in Vue Apps
+
+## Form Input Validation
 
 # vue-update
 
