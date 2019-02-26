@@ -2,21 +2,29 @@
 	<div id="signup">
 		<div class="signup-form">
 			<form @submit.prevent="onSubmit">
-				<div class="input">
+				<div class="input" :class="{invalid: $v.email.$error}">
 					<label for="email">Mail</label>
-					<input type="email" id="email" v-model="email">
+					<input type="email" id="email" @blur="$v.email.$touch()" v-model="email">
+					<p v-if="!$v.email.email">Please provide a valid email address</p>
+					<p v-if="!$v.email.required">This field is required</p>
 				</div>
-				<div class="input">
+				<div class="input" :class="{invalid: $v.age.$error}">
 					<label for="age">Your Age</label>
-					<input type="number" id="age" v-model.number="age">
+					<input type="number" id="age" @blur="$v.age.$touch()" v-model.number="age">
+					<p v-if="!$v.age.minVal">You have to be at least {{ $v.age.$params.minVal.min }} years old</p>
 				</div>
-				<div class="input">
+				<div class="input" :class="{invalid: $v.password.$error}">
 					<label for="password">Password</label>
-					<input type="password" id="password" v-model="password">
+					<input type="password" id="password" @blur="$v.password.$touch()" v-model="password">
 				</div>
-				<div class="input">
+				<div class="input" :class="{invalid: $v.confirmPassword.$error}">
 					<label for="confirm-password">Confirm Password</label>
-					<input type="password" id="confirm-password" v-model="confirmPassword">
+					<input
+						type="password"
+						id="confirm-password"
+						@blur="$v.confirmPassword.$touch()"
+						v-model="confirmPassword"
+					>
 				</div>
 				<div class="input">
 					<label for="country">Country</label>
@@ -31,15 +39,29 @@
 					<h3>Add some Hobbies</h3>
 					<button @click="onAddHobby" type="button">Add Hobby</button>
 					<div class="hobby-list">
-						<div class="input" v-for="(hobbyInput, index) in hobbyInputs" :key="hobbyInput.id">
+						<div
+							class="input"
+							v-for="(hobbyInput, index) in hobbyInputs"
+							:key="hobbyInput.id"
+							:class="{invalid: $v.hobbyInputs.$each[index].$error}"
+						>
 							<label :for="hobbyInput.id">Hobby #{{ index }}</label>
-							<input type="text" :id="hobbyInput.id" v-model="hobbyInput.value">
+							<input
+								type="text"
+								:id="hobbyInput.id"
+								@blur="$v.hobbyInputs.$each[index].value.$touch()"
+								v-model="hobbyInput.value"
+							>
 							<button @click="onDeleteHobby(hobbyInput.id)" type="button">X</button>
 						</div>
+						<p
+							v-if="!$v.hobbyInputs.minLen"
+						>You have to specify at least {{ $v.hobbyInputs.$params.minLen.min }} hobbies</p>
+						<p v-if="!$v.hobbyInputs.required">Please add hobbies</p>
 					</div>
 				</div>
-				<div class="input inline">
-					<input type="checkbox" id="terms" v-model="terms">
+				<div class="input inline" :class="{invalid: $v.terms.$error}">
+					<input type="checkbox" id="terms" @change="$v.terms.$touch()" v-model="terms">
 					<label for="terms">Accept Terms of Use</label>
 				</div>
 				<div class="submit">
@@ -51,6 +73,16 @@
 </template>
 
 <script>
+import {
+	required,
+	email,
+	numeric,
+	minValue,
+	minLength,
+	sameAs,
+	requiredUnless
+} from "vuelidate/lib/validators";
+
 export default {
 	data() {
 		return {
@@ -62,6 +94,43 @@ export default {
 			hobbyInputs: [],
 			terms: false
 		};
+	},
+
+	validations: {
+		email: {
+			required: required,
+			email
+		},
+		age: {
+			required,
+			numeric,
+			minVal: minValue(18)
+		},
+		password: {
+			required,
+			minLen: minLength(6)
+		},
+		confirmPassword: {
+			// sameAs: sameAs("password")
+			sameAs: sameAs(vm => {
+				return vm.password;
+			})
+		},
+		terms: {
+			required: requiredUnless(vm => {
+				return vm.country === "germany";
+			})
+		},
+		hobbyInputs: {
+			required,
+			minLen: minLength(2),
+			$each: {
+				value: {
+					required,
+					minLen: minLength(3)
+				}
+			}
+		}
 	},
 	methods: {
 		onAddHobby() {
@@ -130,6 +199,17 @@ export default {
 	outline: none;
 	border: 1px solid #521751;
 	background-color: #eee;
+}
+
+.input.invalid label {
+	color: red;
+}
+.input.invalid p {
+	color: red;
+}
+.input.invalid input {
+	border: 1px solid red;
+	background-color: #ffc9aa;
 }
 
 .input select {

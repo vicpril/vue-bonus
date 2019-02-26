@@ -1,9 +1,12 @@
 import Vue from "vue";
 import App from "./App.vue";
 import axios from "axios";
+import Vulidate from "vuelidate";
 
 import router from "./router";
 import store from "./store";
+
+Vue.use(Vulidate);
 
 axios.defaults.baseURL = "https://vue-bonus-42301.firebaseio.com";
 // axios.defaults.headers.common["Authorization"] = "wqeasd";
